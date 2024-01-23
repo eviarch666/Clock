@@ -108,7 +108,7 @@ fun TimeNumber (){
         ){
             Spacer(
                 modifier = Modifier
-                    .weight(2f)
+                    .weight(1f)
             )
             Button(//Hour
                 modifier = Modifier
