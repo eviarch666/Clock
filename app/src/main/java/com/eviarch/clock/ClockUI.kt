@@ -1,4 +1,4 @@
-package com.eviarch.clock.ui.theme
+package com.eviarch.clock
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -14,7 +14,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,19 +25,17 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.eviarch.clock.ui.component.SystemBar
 import kotlinx.coroutines.delay
 import java.time.LocalTime
-import kotlin.math.cos
-import kotlin.math.sin
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+
+import com.eviarch.clock.ui.component.WaveCircle
 
 @Preview(name = "WholeTheme")
 @Composable
@@ -52,28 +49,15 @@ fun WholeTheme (){
             statusBarColor = MaterialTheme.colorScheme.background,
             navigationBarColor = MaterialTheme.colorScheme.inverseOnSurface
         )
-        TimeNumber()
     }
+    Clock()
 }
+
 @Composable
-fun SystemBar(
-    statusBarColor: Color,
-    navigationBarColor: Color
-) {
-    val systemUiController = rememberSystemUiController()
-    SideEffect {
-        systemUiController.apply {
-            setStatusBarColor(color = statusBarColor)
-            setNavigationBarColor(color = navigationBarColor)
-        }
-    }
-}
-@Composable
-fun TimeNumber (){
+fun Clock (){
     var currentTime by remember { mutableStateOf(LocalTime.now()) }
     var boxWidth by remember { mutableFloatStateOf(0f) }
     var boxHeight by remember { mutableFloatStateOf(0f) }
-
     LaunchedEffect(true) {
         while (true) {
             currentTime = LocalTime.now()
@@ -100,74 +84,13 @@ fun TimeNumber (){
                     .align(Alignment.Center),
                 strokeWidth = 0f
             )
-            Clock(radius = minOf(boxWidth,boxHeight) / 4,currentTime = currentTime)
+            ClockDial(radius = minOf(boxWidth,boxHeight) / 4,currentTime = currentTime)
         }
-        Row (
+        ClockBar(
+            currentTime = currentTime,
             modifier = Modifier
                 .weight(1f)
-        ){
-            Spacer(
-                modifier = Modifier
-                    .weight(1f)
-            )
-            Button(//Hour
-                modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.background,
-                        shape = MaterialTheme.shapes.large
-                    )
-                    .weight(3f),
-                onClick = {}
-            ){
-                Text(
-                    modifier = Modifier
-                    ,
-                    text = currentTime.hour.toString()
-                )
-            }
-            Spacer(
-                modifier = Modifier
-                    .weight(1f)
-            )
-            Button(//Minute
-                modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.background,
-                        shape = MaterialTheme.shapes.large
-                    )
-                    .weight(3f),
-                onClick = {}
-            ){
-                Text(
-                    modifier = Modifier
-                    ,
-                    text = currentTime.minute.toString()
-                )
-            }
-            Spacer(
-                modifier = Modifier
-                    .weight(1f)
-            )
-            Button(//Second
-                modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.background,
-                        shape = MaterialTheme.shapes.large
-                    )
-                    .weight(3f),
-                onClick = {}
-            ){
-                Text(
-                    modifier = Modifier
-                    ,
-                    text = currentTime.second.toString()
-                )
-            }
-            Spacer(
-                modifier = Modifier
-                    .weight(1f)
-            )
-        }
+        )
         Spacer(
             modifier = Modifier
                 .weight(1f)
@@ -176,73 +99,18 @@ fun TimeNumber (){
 }
 
 @Composable
-fun Clock (radius: Float, currentTime: LocalTime){
+fun ClockDial (radius: Float, currentTime: LocalTime){
     Canvas(
         modifier = Modifier
             .fillMaxSize()
     ){
         val centerX = size.width / 2
         val centerY = size.height / 2
-
         drawClockHandle(centerX = centerX, centerY = centerY, radius = radius, currentTime = currentTime, this)
     }
 }
-@Composable
-fun WaveCircle(
-    modifier: Modifier = Modifier,
-    edgeNumber: Int = 12,
-    radian: Float,
-    rotationAngle: Float = 0f,
-    color: Color,
-    strokeWidth: Float = 20f,
-) {
-    Canvas(
-        modifier = modifier,
-        onDraw = {
-            val centerX = size.width / 2
-            val centerY = size.height / 2
-
-            // 计算半径，以确保图形等比例放大
-            val radius = (size.width / 2) - (strokeWidth / 2)
-
-            val numberOfPoints = 360
-            val angleIncrement = 360f / numberOfPoints
-
-            val path = Path()
-            for (i in 0 until numberOfPoints) {
-                val angleInRadians = Math.toRadians(i.toDouble() * angleIncrement)
-
-                val x = (centerX + (radius + sin(angleInRadians * edgeNumber) * radian) * cos(
-                    angleInRadians
-                )).toFloat()
-                val y = (centerY + (radius + sin(angleInRadians * edgeNumber) * radian) * sin(
-                    angleInRadians
-                )).toFloat()
-
-                if (i == 0) {
-                    path.moveTo(x, y)
-                } else {
-                    path.lineTo(x, y)
-                }
-            }
-            path.close()
-
-            // Default rotation
-            val defaultRotationAngle = -8f
-            rotate(defaultRotationAngle + rotationAngle, pivot = Offset(centerX, centerY)) {
-                drawPath(
-                    path = path,
-                    color = color,
-                    style = Fill
-                )
-            }
-        }
-    )
-}
-
 private fun DrawScope.drawClockHandle (centerX: Float, centerY: Float, radius: Float, currentTime: LocalTime, drawScope: DrawScope ){
     val cornerRadius = 8.dp.toPx()//圆角矩形的圆角半径
-
     drawScope.rotate(currentTime.hour * 30f - 180f, Offset(centerX, centerY)) {
         drawRoundRect(
             color = Color.White,
@@ -252,7 +120,6 @@ private fun DrawScope.drawClockHandle (centerX: Float, centerY: Float, radius: F
             cornerRadius = CornerRadius(cornerRadius, cornerRadius)
         )
     }
-
     // 分钟指针
     drawScope.rotate(currentTime.minute * 6f- 180f, Offset(centerX, centerY)) {
         drawRoundRect(
@@ -263,7 +130,6 @@ private fun DrawScope.drawClockHandle (centerX: Float, centerY: Float, radius: F
             cornerRadius = CornerRadius(cornerRadius, cornerRadius)
         )
     }
-
     // 秒针
     drawScope.rotate(currentTime.second * 6f- 180f, Offset(centerX, centerY)) {
         drawRoundRect(
@@ -275,3 +141,75 @@ private fun DrawScope.drawClockHandle (centerX: Float, centerY: Float, radius: F
         )
     }
 }
+
+@Composable
+fun ClockBar (currentTime: LocalTime,modifier: Modifier){
+    Row (
+        modifier = modifier
+    ){
+        Spacer(
+            modifier = Modifier
+                .weight(1f)
+        )
+        Button(//Hour
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = MaterialTheme.shapes.large
+                )
+                .weight(3f),
+            onClick = {}
+        ){
+            Text(
+                modifier = Modifier
+                ,
+                text = currentTime.hour.toString()
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .weight(1f)
+        )
+        Button(//Minute
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = MaterialTheme.shapes.large
+                )
+                .weight(3f),
+            onClick = {}
+        ){
+            Text(
+                modifier = Modifier
+                ,
+                text = currentTime.minute.toString()
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .weight(1f)
+        )
+        Button(//Second
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = MaterialTheme.shapes.large
+                )
+                .weight(3f),
+            onClick = {}
+        ){
+            Text(
+                modifier = Modifier
+                ,
+                text = currentTime.second.toString()
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .weight(1f)
+        )
+    }
+}
+
+
+
