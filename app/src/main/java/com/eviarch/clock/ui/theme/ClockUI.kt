@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -70,8 +71,8 @@ fun SystemBar(
 @Composable
 fun TimeNumber (){
     var currentTime by remember { mutableStateOf(LocalTime.now()) }
-    var boxWidth by remember { mutableStateOf(0f) }
-    var boxHeight by remember { mutableStateOf(0f) }
+    var boxWidth by remember { mutableFloatStateOf(0f) }
+    var boxHeight by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(true) {
         while (true) {
